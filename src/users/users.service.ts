@@ -22,4 +22,13 @@ export class UsersService {
 			data: users,
 		}
 	}
+
+	async getUserByEmail(email: string) {
+		const user = await this.userRepozitory.findOne({
+			where: { email },
+			attributes: ['id', 'email', 'password', 'createdAt', 'updatedAt'],
+		})
+		const plainUser = user?.get({ plain: true })
+		return plainUser
+	}
 }
