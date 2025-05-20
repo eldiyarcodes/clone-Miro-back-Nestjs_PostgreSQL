@@ -1,5 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+	UseGuards,
+} from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { Board } from './boards.model'
 import { BoardService } from './boards.service'
 import { CreateBoardDto } from './dto/create-board.dto'
@@ -18,6 +27,7 @@ export class BoardController {
 
 	@ApiOperation({ summary: 'Get all boards for current user' })
 	@ApiResponse({ status: 200, type: [Board] })
+	@UseGuards(JwtAuthGuard)
 	@Get('/boards')
 	getAll() {
 		return this.boardService.getAllBoards()

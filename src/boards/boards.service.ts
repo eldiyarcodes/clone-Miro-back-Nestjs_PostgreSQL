@@ -28,7 +28,7 @@ export class BoardService {
 		if (!board) {
 			return {
 				status: 'error',
-				message: 'Board not found',
+				message: 'Доска не найдена',
 			}
 		}
 
@@ -36,7 +36,7 @@ export class BoardService {
 
 		return {
 			status: 'success',
-			message: `Board with id ${id} deleted`,
+			message: `Доска с id ${id} удалена`,
 		}
 	}
 }

@@ -1,39 +1,36 @@
-import {
-	HttpException,
-	HttpStatus,
-	Injectable,
-	UnauthorizedException,
-} from '@nestjs/common'
-import { JwtService } from '@nestjs/jwt'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcryptjs'
-import { CreateUserDto } from 'src/users/dto/create-user.dto'
+import { Request, Response } from 'express'
+import { UserDto } from 'src/users/dto/user.dto'
 import { UsersService } from 'src/users/users.service'
+import { TokensService } from './token.service'
 
 @Injectable()
 export class AuthService {
 	constructor(
 		private userService: UsersService,
-		private jwtService: JwtService
+		private tokensService: TokensService
 	) {}
 
-	async login(userDto: CreateUserDto) {
+	async login(userDto: UserDto, res: Response) {
 		const user = await this.validateUser(userDto)
-		const token = await this.generateToken(user)
+		const tokens = this.tokensService.generateTokens({
+			email: user.email,
+			id: user.id,
+		})
+		this.tokensService.setRefreshTokenCookie(res, tokens.refreshToken)
 
 		return {
-			stattus: 'success',
-			token,
+			status: 'success',
+			user: { id: user.id, email: user.email },
+			access_token: tokens.accessToken,
 		}
 	}
 
-	async registration(userDto: CreateUserDto) {
+	async registration(userDto: UserDto, res: Response) {
 		const candidate = await this.userService.getUserByEmail(userDto.email)
-
 		if (candidate) {
-			throw new HttpException(
-				'A user with such email exists',
-				HttpStatus.BAD_REQUEST
-			)
+			throw new HttpException('Email уже занят', HttpStatus.BAD_REQUEST)
 		}
 
 		const hashPassword = await bcrypt.hash(userDto.password, 10)
@@ -42,27 +39,64 @@ export class AuthService {
 			password: hashPassword,
 		})
 
-		const tokens = await this.generateToken(user)
+		const tokens = this.tokensService.generateTokens({
+			email: userDto.email,
+			id: user.user.id,
+		})
+		this.tokensService.setRefreshTokenCookie(res, tokens.refreshToken)
 
 		return {
 			status: 'success',
-			user_id: user.user.id,
-			tokens,
+			user: { id: user.user.id, email: userDto.email },
+			access_token: tokens.accessToken,
 		}
 	}
 
-	private async generateToken(user) {
-		const payload = { email: user.email, id: user.id }
-		return this.jwtService.sign(payload)
+	async logout(res: Response) {
+		res.clearCookie('refresh_token', {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'strict',
+		})
+
+		return {
+			status: 'success',
+			message: 'Logout successful',
+		}
 	}
 
-	private async validateUser(userDto: CreateUserDto) {
+	async refreshToken(req: Request, res: Response) {
+		const refreshToken = req.cookies?.refresh_token
+		if (!refreshToken) {
+			throw new HttpException('Нет токена', HttpStatus.UNAUTHORIZED)
+		}
+
+		const payload = this.tokensService.validateRefreshToken(refreshToken)
+		const user = await this.userService.getUserByEmail(payload.email)
+
+		if (!user) {
+			throw new HttpException('Пользователь не найден', HttpStatus.UNAUTHORIZED)
+		}
+
+		const tokens = this.tokensService.generateTokens({
+			email: user.email,
+			id: user.id,
+		})
+		this.tokensService.setRefreshTokenCookie(res, tokens.refreshToken)
+
+		return {
+			access_token: tokens.accessToken,
+		}
+	}
+
+	private async validateUser(userDto: UserDto) {
 		const user = await this.userService.getUserByEmail(userDto.email)
 
 		if (!user) {
-			throw new UnauthorizedException({
-				message: 'Incorrect email or password',
-			})
+			throw new HttpException(
+				'Неверный email или пароль',
+				HttpStatus.BAD_REQUEST
+			)
 		}
 
 		const passwordEquals = await bcrypt.compare(userDto.password, user.password)
@@ -71,6 +105,6 @@ export class AuthService {
 			return user
 		}
 
-		throw new UnauthorizedException({ message: 'Incorrect email or password' })
+		throw new HttpException('Неверный email или пароль', HttpStatus.BAD_REQUEST)
 	}
 }
