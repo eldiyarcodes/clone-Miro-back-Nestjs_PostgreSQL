@@ -88,8 +88,9 @@ export class AuthService {
 		this.tokensService.setRefreshTokenCookie(res, tokens.refreshToken)
 
 		return {
+			status: 'success',
 			access_token: tokens.accessToken,
-		}
+		}		
 	}
 
 	private async validateUser(userDto: UserDto) {
