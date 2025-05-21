@@ -18,6 +18,7 @@ export class AuthService {
 			email: user.email,
 			id: user.id,
 		})
+
 		this.tokensService.setRefreshTokenCookie(res, tokens.refreshToken)
 
 		return {
@@ -40,9 +41,10 @@ export class AuthService {
 		})
 
 		const tokens = this.tokensService.generateTokens({
-			email: userDto.email,
+			email: user.user.email,
 			id: user.user.id,
 		})
+
 		this.tokensService.setRefreshTokenCookie(res, tokens.refreshToken)
 
 		return {
@@ -82,6 +84,7 @@ export class AuthService {
 			email: user.email,
 			id: user.id,
 		})
+
 		this.tokensService.setRefreshTokenCookie(res, tokens.refreshToken)
 
 		return {

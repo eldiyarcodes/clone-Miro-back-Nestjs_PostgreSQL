@@ -19,12 +19,13 @@ export class TokensService {
 	}
 
 	setRefreshTokenCookie(res: Response, token: string) {
+		const isProd = process.env.NODE_ENV === 'production'
+
 		res.cookie('refresh_token', token, {
 			httpOnly: true,
-			path: '/',
-			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
-			sameSite: 'strict',
-			secure: true, // использовать только на HTTPS
+			secure: isProd,
+			sameSite: isProd ? 'none' : 'lax',
+			maxAge: 7 * 24 * 60 * 60 * 1000,
 		})
 	}
 
