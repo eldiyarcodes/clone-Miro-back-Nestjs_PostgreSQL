@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as cookieParser from 'cookie-parser'
 import { AppModule } from './app.module'
+import { ValidationPipe } from './pipes/validation.pipe'
 
 async function start() {
 	const PORT = process.env.PORT || 5000
@@ -13,6 +14,7 @@ async function start() {
 	})
 
 	app.use(cookieParser())
+	app.useGlobalPipes(new ValidationPipe())
 
 	const config = new DocumentBuilder()
 		.setTitle('API Documentation Clone Miro')

@@ -1,10 +1,13 @@
 import { HttpException, HttpStatus } from '@nestjs/common'
 
 export class ValidationExeption extends HttpException {
-	messages
-
-	constructor(response) {
-		super(response, HttpStatus.BAD_REQUEST)
-		this.messages = response
+	constructor(public validationErrors: string[]) {
+		super(
+			{
+				message: 'Validation failed',
+				errors: validationErrors,
+			},
+			HttpStatus.BAD_REQUEST
+		)
 	}
 }

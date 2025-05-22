@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/sequelize'
 import { Board } from './boards.model'
-import { CreateBoardDto } from './dto/create-board.dto'
+import { CreateBoardDto } from './dto/board.dto'
 
 @Injectable()
 export class BoardService {
@@ -11,6 +11,46 @@ export class BoardService {
 		const board = await this.boardRepozitory.create(dto)
 		return {
 			status: 'success',
+			board,
+		}
+	}
+
+	async updateBoardName(boardId: number, boardName: string) {
+		const board = await this.boardRepozitory.findByPk(boardId)
+
+		if (!board) {
+			throw new HttpException(
+				`Доска с id ${boardId} не найдена`,
+				HttpStatus.BAD_REQUEST
+			)
+		}
+
+		board.name = boardName
+		await board.save()
+
+		return {
+			status: 'success',
+			message: 'Названия доски обновлено',
+			board,
+		}
+	}
+
+	async updateBoardFavorite(boardId: number) {
+		const board = await this.boardRepozitory.findByPk(boardId)
+
+		if (!board) {
+			throw new HttpException(
+				`Доска с id ${boardId} не найдена`,
+				HttpStatus.BAD_REQUEST
+			)
+		}
+
+		board.isFavorite = !board.isFavorite
+		board.save()
+
+		return {
+			status: 'success',
+			message: `Поле isFavorite обновлено на ${board.isFavorite}`,
 			board,
 		}
 	}
