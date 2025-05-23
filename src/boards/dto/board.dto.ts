@@ -1,9 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
 import {
 	IsBoolean,
+	IsBooleanString,
 	IsDateString,
+	IsIn,
+	IsInt,
 	IsNotEmpty,
 	IsNumber,
+	IsOptional,
+	IsPositive,
 	IsString,
 } from 'class-validator'
 
@@ -39,4 +45,39 @@ export class UpdateBoardNameDto {
 	@IsString()
 	@IsNotEmpty()
 	boardName: string
+}
+
+export class GetBoardsQueryDto {
+	@IsOptional()
+	@IsBooleanString()
+	@ApiPropertyOptional({ example: 'true', description: 'Filter by favorite' })
+	isFavorite?: string
+
+	@IsOptional()
+	@IsIn(['createdAt', 'updatedAt', 'name', 'lastOpenedAt'])
+	@ApiPropertyOptional({
+		description: 'Sort by field',
+		enum: ['createdAt', 'updatedAt', 'name', 'lastOpenedAt'],
+		example: 'lastOpenedAt',
+	})
+	sort?: 'createdAt' | 'updatedAt' | 'name' | 'lastOpenedAt'
+
+	@IsOptional()
+	@Transform(({ value }) => parseInt(value, 10))
+	@IsInt()
+	@IsPositive()
+	@ApiPropertyOptional({ example: 10, description: 'Items per page' })
+	limit?: number
+
+	@IsOptional()
+	@Transform(({ value }) => parseInt(value, 10))
+	@IsInt()
+	@IsPositive()
+	@ApiPropertyOptional({ example: 1, description: 'Page number' })
+	page?: number
+
+	@IsOptional()
+	@IsString()
+	@ApiPropertyOptional({ example: 'project', description: 'Search by name' })
+	search?: string
 }

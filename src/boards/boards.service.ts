@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/sequelize'
+import { Op } from 'sequelize'
 import { Board } from './boards.model'
-import { CreateBoardDto } from './dto/board.dto'
+import { CreateBoardDto, GetBoardsQueryDto } from './dto/board.dto'
 
 @Injectable()
 export class BoardService {
@@ -9,8 +10,10 @@ export class BoardService {
 
 	async createBoard(dto: CreateBoardDto) {
 		const board = await this.boardRepozitory.create(dto)
+
 		return {
 			status: 'success',
+			message: 'Доска созадна',
 			board,
 		}
 	}
@@ -21,7 +24,7 @@ export class BoardService {
 		if (!board) {
 			throw new HttpException(
 				`Доска с id ${boardId} не найдена`,
-				HttpStatus.BAD_REQUEST
+				HttpStatus.NOT_FOUND
 			)
 		}
 
@@ -41,7 +44,7 @@ export class BoardService {
 		if (!board) {
 			throw new HttpException(
 				`Доска с id ${boardId} не найдена`,
-				HttpStatus.BAD_REQUEST
+				HttpStatus.NOT_FOUND
 			)
 		}
 
@@ -55,21 +58,66 @@ export class BoardService {
 		}
 	}
 
-	async getAllBoards() {
-		const boards = await this.boardRepozitory.findAll()
+	async getAllBoards(query: GetBoardsQueryDto) {
+		const {
+			isFavorite,
+			sort = 'lastOpenedAt',
+			limit = 10,
+			page = 1,
+			search,
+		} = query
+
+		const where: any = {}
+
+		if (isFavorite !== undefined) {
+			where.isFavorite = isFavorite === 'true'
+		}
+
+		if (search) {
+			where.name = { [Op.iLike]: `%${search}%` }
+		}
+
+		const offset = (page - 1) * limit
+
+		const { rows: data, count: total } =
+			await this.boardRepozitory.findAndCountAll({
+				where,
+				order: [[sort, 'DESC']],
+				limit,
+				offset,
+			})
+
+		return {
+			total,
+			totalPages: Math.ceil(total / limit),
+			data,
+		}
+	}
+
+	async getBaordById(id: number) {
+		const board = await this.boardRepozitory.findByPk(id)
+
+		if (!board) {
+			throw new HttpException(
+				`Доска с id ${id} не найдена`,
+				HttpStatus.NOT_FOUND
+			)
+		}
+
 		return {
 			status: 'success',
-			data: boards,
+			board,
 		}
 	}
 
 	async deleteBoard(id: number) {
 		const board = await this.boardRepozitory.findByPk(id)
+
 		if (!board) {
-			return {
-				status: 'error',
-				message: 'Доска не найдена',
-			}
+			throw new HttpException(
+				`Доска с id ${id} не найдена`,
+				HttpStatus.NOT_FOUND
+			)
 		}
 
 		await board.destroy()
