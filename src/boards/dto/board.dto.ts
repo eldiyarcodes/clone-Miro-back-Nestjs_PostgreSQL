@@ -47,6 +47,16 @@ export class UpdateBoardNameDto {
 	boardName: string
 }
 
+export class UpdateBoardFavoriteDto {
+	@ApiProperty({ example: 1, description: 'ID доски' })
+	@IsNumber()
+	boardId: number
+
+	@ApiProperty({ example: true, description: 'Нужное значение isFavorite' })
+	@IsBoolean()
+	isFavorite: boolean
+}
+
 export class GetBoardsQueryDto {
 	@IsOptional()
 	@IsBooleanString()

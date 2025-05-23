@@ -21,20 +21,20 @@ export class Board extends Model<Board, BoardCreationAttrs> {
 
 	@ApiProperty({ example: 'name', description: 'Board name' })
 	@Column({ type: DataType.STRING, allowNull: false })
-	name: string
+	declare name: string
 
 	@ApiProperty({ example: 'description', description: 'Board description' })
 	@Column({ type: DataType.STRING, allowNull: false })
-	description: string
+	declare description: string
 
 	@ApiProperty({
 		example: '2025-05-22T11:17:03.695Z',
 		description: 'Last opened at',
 	})
 	@Column({ type: DataType.DATE, allowNull: false })
-	lastOpenedAt: string
+	declare lastOpenedAt: string
 
 	@ApiProperty({ example: false, description: 'Board favorite state' })
-	@Column({ type: DataType.BOOLEAN, allowNull: false })
-	isFavorite: boolean
+	@Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+	declare isFavorite: boolean
 }

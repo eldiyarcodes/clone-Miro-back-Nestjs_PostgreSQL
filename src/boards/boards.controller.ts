@@ -16,6 +16,7 @@ import { BoardService } from './boards.service'
 import {
 	CreateBoardDto,
 	GetBoardsQueryDto,
+	UpdateBoardFavoriteDto,
 	UpdateBoardNameDto,
 } from './dto/board.dto'
 
@@ -40,11 +41,11 @@ export class BoardController {
 		return this.boardService.updateBoardName(dto.boardId, dto.boardName)
 	}
 
-	@Patch('/boards/:id/favorite')
+	@Patch('/boards/favorite')
 	@UseGuards(JwtAuthGuard)
 	@ApiOperation({ summary: 'Update board status' })
-	updateBoardFavorite(@Param('id') id: string) {
-		return this.boardService.updateBoardFavorite(Number(id))
+	updateBoardFavorite(@Body() dto: UpdateBoardFavoriteDto) {
+		return this.boardService.updateBoardFavorite(dto.boardId, dto.isFavorite)
 	}
 
 	@Get('/boards')

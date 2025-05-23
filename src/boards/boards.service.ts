@@ -38,7 +38,7 @@ export class BoardService {
 		}
 	}
 
-	async updateBoardFavorite(boardId: number) {
+	async updateBoardFavorite(boardId: number, isFavorite: boolean) {
 		const board = await this.boardRepozitory.findByPk(boardId)
 
 		if (!board) {
@@ -48,12 +48,12 @@ export class BoardService {
 			)
 		}
 
-		board.isFavorite = !board.isFavorite
-		board.save()
+		board.isFavorite = isFavorite
+		await board.save()
 
 		return {
 			status: 'success',
-			message: `Поле isFavorite обновлено на ${board.isFavorite}`,
+			message: `Поле isFavorite обновлено на ${isFavorite}`,
 			board,
 		}
 	}
