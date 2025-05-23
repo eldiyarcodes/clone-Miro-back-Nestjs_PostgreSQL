@@ -61,7 +61,7 @@ export class BoardService {
 	async getAllBoards(query: GetBoardsQueryDto) {
 		const {
 			isFavorite,
-			sort = 'lastOpenedAt',
+			sort = 'createdAt',
 			limit = 10,
 			page = 1,
 			search,
